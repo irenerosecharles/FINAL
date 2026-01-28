@@ -11,6 +11,7 @@ export interface User {
   password?: string;
   role: UserRole;
   fullName: string;
+  phoneNumber: string;
 }
 
 export enum RoomType {

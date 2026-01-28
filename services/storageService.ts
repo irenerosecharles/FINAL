@@ -30,7 +30,7 @@ export const PropertyStorage = {
     users.push(newUser);
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     
-    logSql(`INSERT INTO SNOWFLAKE.IDENTITY.USERS (ID, EMAIL, ROLE, FULL_NAME) VALUES ('${newUser.id}', '${newUser.email}', '${newUser.role}', '${newUser.fullName}')`);
+    logSql(`INSERT INTO SNOWFLAKE.IDENTITY.USERS (ID, EMAIL, ROLE, FULL_NAME, PHONE_NUMBER) VALUES ('${newUser.id}', '${newUser.email}', '${newUser.role}', '${newUser.fullName}', '${newUser.phoneNumber}')`);
     return newUser;
   },
 
@@ -41,7 +41,7 @@ export const PropertyStorage = {
     if (user) {
       const { password, ...userWithoutPass } = user;
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userWithoutPass));
-      logSql(`SELECT ID, ROLE FROM SNOWFLAKE.IDENTITY.USERS WHERE EMAIL = '${email}' AND PASSWORD_HASH = SHA256('${password}')`);
+      logSql(`SELECT ID, ROLE, FULL_NAME FROM SNOWFLAKE.IDENTITY.USERS WHERE EMAIL = '${email}' AND PASSWORD_HASH = SHA256('${password}')`);
       return userWithoutPass as User;
     }
     logSql(`SELECT 0 FROM SNOWFLAKE.IDENTITY.USERS WHERE EMAIL = '${email}' -- FAILED AUTH`);
