@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Copy of BYTECODE: Residential Infrastructure Intelligence (Streamlit)",
+  "description": "Streamlit-powered AI residential inspection system using Snowflake Cortex (simulated) for risk scoring and defect detection.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
