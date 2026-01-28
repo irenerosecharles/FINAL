@@ -10,7 +10,13 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [authMode, setAuthMode] = useState<'LOGIN' | 'SIGNUP'>('LOGIN');
-  const [formData, setFormData] = useState({ username: '', fullName: '', role: UserRole.NORMAL });
+  const [formData, setFormData] = useState({ 
+    email: '', 
+    username: '', 
+    password: '', 
+    fullName: '', 
+    role: UserRole.NORMAL 
+  });
 
   useEffect(() => {
     const user = PropertyStorage.getCurrentUser();
@@ -31,14 +37,15 @@ const App: React.FC = () => {
     e.preventDefault();
     if (authMode === 'SIGNUP') {
       const newUser = PropertyStorage.signup(formData);
-      setCurrentUser(newUser);
-      PropertyStorage.login(newUser.username);
+      if (newUser) {
+        setCurrentUser(newUser);
+      }
     } else {
-      const user = PropertyStorage.login(formData.username);
+      const user = PropertyStorage.login(formData.email, formData.password);
       if (user) {
         setCurrentUser(user);
       } else {
-        alert("User not found. Check credentials or Sign Up.");
+        alert("Authentication Failed. Check your email and password.");
       }
     }
   };
@@ -80,7 +87,7 @@ const App: React.FC = () => {
                 Ledger.
               </h1>
               <p className="text-slate-400 text-xl leading-relaxed max-w-md">
-                Authenticate with the Snowflake Identity Provider to access local Cortex Edge intelligence.
+                Authenticate with Email & Password via the Snowflake Identity Provider to access local Cortex Edge intelligence.
               </p>
             </div>
           </div>
@@ -99,31 +106,45 @@ const App: React.FC = () => {
                   required
                   value={formData.fullName}
                   onChange={e => setFormData({...formData, fullName: e.target.value})}
-                  className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-white font-bold text-sm"
+                  className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-white font-bold text-sm uppercase tracking-wider"
                 />
               )}
+              
               <input 
-                type="text" 
-                placeholder="USERNAME"
+                type="email" 
+                placeholder="EMAIL ADDRESS"
                 required
-                value={formData.username}
-                onChange={e => setFormData({...formData, username: e.target.value})}
+                value={formData.email}
+                onChange={e => setFormData({...formData, email: e.target.value})}
                 className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-white font-bold text-sm"
               />
+              
+              <input 
+                type="password" 
+                placeholder="PASSWORD"
+                required
+                value={formData.password}
+                onChange={e => setFormData({...formData, password: e.target.value})}
+                className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-white font-bold text-sm"
+              />
+
               {authMode === 'SIGNUP' && (
-                <select 
-                  value={formData.role}
-                  onChange={e => setFormData({...formData, role: e.target.value as UserRole})}
-                  className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-white font-bold text-sm"
-                >
-                  <option value={UserRole.NORMAL}>Resident / Buyer</option>
-                  <option value={UserRole.INSPECTOR}>Professional Inspector</option>
-                </select>
+                <div className="space-y-3 pt-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Access Level</label>
+                  <select 
+                    value={formData.role}
+                    onChange={e => setFormData({...formData, role: e.target.value as UserRole})}
+                    className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-white font-bold text-sm"
+                  >
+                    <option value={UserRole.NORMAL}>Resident / Homeowner</option>
+                    <option value={UserRole.INSPECTOR}>Professional Auditor</option>
+                  </select>
+                </div>
               )}
               
               <button 
                 type="submit"
-                className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest text-xs"
+                className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest text-xs mt-4"
               >
                 {authMode === 'LOGIN' ? 'Initiate Handshake' : 'Provision Account'}
               </button>

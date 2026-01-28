@@ -6,8 +6,9 @@ export enum UserRole {
 
 export interface User {
   id: string;
+  email: string;
   username: string;
-  password?: string; // Only for local simulation
+  password?: string;
   role: UserRole;
   fullName: string;
 }

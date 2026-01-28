@@ -14,24 +14,37 @@ const logSql = (query: string) => {
 
 export const PropertyStorage = {
   // --- AUTHENTICATION ---
-  signup: (user: Omit<User, 'id'>): User => {
+  signup: (userData: Omit<User, 'id'>): User | null => {
     const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
-    const newUser = { ...user, id: Math.random().toString(36).substr(2, 9) };
+    
+    // Check if email already exists
+    if (users.find((u: User) => u.email === userData.email)) {
+      alert("Email already registered in Snowflake Identity Provider.");
+      return null;
+    }
+
+    const newUser = { 
+      ...userData, 
+      id: `USR-${Math.random().toString(36).substr(2, 6).toUpperCase()}` 
+    };
     users.push(newUser);
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     
-    logSql(`INSERT INTO SNOWFLAKE.IDENTITY.USERS (ID, USERNAME, ROLE, FULL_NAME) VALUES ('${newUser.id}', '${newUser.username}', '${newUser.role}', '${newUser.fullName}')`);
+    logSql(`INSERT INTO SNOWFLAKE.IDENTITY.USERS (ID, EMAIL, ROLE, FULL_NAME) VALUES ('${newUser.id}', '${newUser.email}', '${newUser.role}', '${newUser.fullName}')`);
     return newUser;
   },
 
-  login: (username: string): User | null => {
+  login: (email: string, password?: string): User | null => {
     const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
-    const user = users.find((u: User) => u.username === username);
+    const user = users.find((u: User) => u.email === email && u.password === password);
+    
     if (user) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
-      logSql(`SELECT * FROM SNOWFLAKE.IDENTITY.USERS WHERE USERNAME = '${username}' AND AUTH_TOKEN IS VALID`);
-      return user;
+      const { password, ...userWithoutPass } = user;
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userWithoutPass));
+      logSql(`SELECT ID, ROLE FROM SNOWFLAKE.IDENTITY.USERS WHERE EMAIL = '${email}' AND PASSWORD_HASH = SHA256('${password}')`);
+      return userWithoutPass as User;
     }
+    logSql(`SELECT 0 FROM SNOWFLAKE.IDENTITY.USERS WHERE EMAIL = '${email}' -- FAILED AUTH`);
     return null;
   },
 
